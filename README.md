@@ -1,2 +1,3 @@
 # fake_proxmox
-Create a fake front promox
+## Execution du serveur web
+`python manage.py runserver`
