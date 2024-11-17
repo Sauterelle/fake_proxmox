@@ -17,11 +17,11 @@ TODO à faire
   cloners
   supprimer
   snapshot
+  cree une vm (template ??)
   ---------Gestion disque---------
   creer un pool 
   Cree un volume qcow2 : fait (par défaut dans le pool "default")
   Supprimer volume qcow2 : fait
-  cree une vm (template ??)
 """
 
 
@@ -36,7 +36,7 @@ def isVolumeExist(pool, volName):
     return False
 
 
-def createStoragePoolVolume(pool, volName, capacity):
+def createStoragePoolVolume(pool, volName, capacity=10):
     if not isVolumeExist(pool, volName):
         stpVolXML = (
             """
@@ -125,14 +125,54 @@ def get_hypervisor_info_json(conn):
     return hypervisor_info
 
 
-def destroy_vm(domain):
+def createVm(conn, name, volume, vcpu=1, memory=1):
+    xml_config = (
+        """
+        <domain type='qemu'>
+        <name>"""
+        + name
+        + """</name>
+        <memory unit='G'>"""
+        + str(memory)
+        + """</memory> <!-- 1 Go de RAM -->
+        <vcpu placement='static'>"""
+        + str(vcpu)
+        + """</vcpu>    <!-- 1 vCPU -->
+        <os>
+            <type arch='x86_64' machine='pc-i440fx-7.2'>hvm</type>
+        </os>
+        <devices>
+            <disk type='file' device='disk'>
+            <driver name='qemu' type='qcow2'/>
+            <source file='"""
+        + volume.path()
+        + """'/>
+            <target dev='vda' bus='virtio'/>
+            </disk>
+            <interface type='network'>
+            <source network='default'/>
+            </interface>
+        </devices>
+        </domain>
+        """
+    )
+
+    dom = conn.createXML(xml_config)
+
+    if dom is None:
+        print("Failed to create a domain fom an XML definition.")
+        exit(1)
+    print("Guest " + dom.name() + " has booted")
+
+
+def destroyVm(domain):
     if domain.isActive():
         domain.destroy()
     else:
         print("domain is already innactive")
 
 
-def start_vm(domain):
+def startVm(domain):
     if domain.isActive():
         print("VM is already active")
     else:
@@ -147,7 +187,14 @@ conn = libvirt.open("qemu+ssh://" + remote_user + "@" + remote_hosts + "/system"
 if not conn:
     raise SystemExit("Failed to open connection to qemu:///system")
 
+default_pool = conn.storagePoolLookupByName("default")
 
-start_vm(conn.lookupByName("eteint"))
-destroy_vm(conn.lookupByName("debian11"))
+createStoragePoolVolume(default_pool, "caca.qcow2", 10)
+
+createVm(
+    conn,
+    "caca_test",
+    conn.storagePoolLookupByName("default").storageVolLookupByName("caca.qcow2"),
+)
+
 conn.close()
