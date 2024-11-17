@@ -1,28 +1,86 @@
 import libvirt
-import json
 
 """
 TODO à faire
+
+- Ajouter une connexion QUEMU/KVM
+
+  ---------Network---------
+    Crée un nouveau réseau  
+
+  ---------VM---------
+  migrer vm 
+  demarrer
+  suspendre
+  eteindre
+  redémarer
+  cloners
+  supprimer
+  snapshot
+  ---------Gestion disque---------
+  creer un pool 
+  Cree un volume qcow2 : fait (par défaut dans le pool "default")
+  Supprimer volume qcow2 : fait
+  cree une vm (template ??)
 """
 
 
-def domains_to_xml(conn):
-    list_domains = conn.listAllDomains()
-    with open("vms_info.xml", "w") as file:
-        for domain in list_domains:
-            file.write(domain.XMLDesc())
+# Storage utils
 
 
-def shutdown_vm(domain):
-    if domain.isActive():
-        domain.destroy()
+def isVolumeExist(pool, volName):
+    if pool.isActive():
+        for name in pool.listVolumes():
+            if name == volName:
+                return True
+    return False
+
+
+def createStoragePoolVolume(pool, volName, capacity):
+    if not isVolumeExist(pool, volName):
+        stpVolXML = (
+            """
+            <volume>
+              <name>"""
+            + volName
+            + """</name>
+              <allocation>0</allocation>
+              <capacity unit="G">"""
+            + str(capacity)
+            + """</capacity>
+              <target>
+                <format type="qcow2"/>
+              </target>
+            </volume>
+            """
+        )
+        stpVol = pool.createXML(stpVolXML, 0)
+        return stpVol
     else:
-        print("domain is already innactive")
+        return "Volume already exist"
 
 
-def start_vm(domain):
-    state = domain.state()
-    print(state)
+def deleteStoragePoolVolume(volume):
+    volume.delete()
+
+
+def list_storage_pool(conn):
+    pools = conn.listAllStoragePools(0)
+
+    for pool in pools:
+        if pool.isActive():
+            stgvols = pool.listVolumes()
+            print("Storage pool: " + pool.name())
+
+            for stgvol in stgvols:
+                print("     Storage vol: " + stgvol)
+
+
+# VM utils
+def get_domain_xml(conn, uuid):
+    domain = conn.lookupByUUIDString(uuid)
+    xml_desc = domain.XMLDesc()
+    return xml_desc
 
 
 def get_vm_info(domain):
@@ -64,11 +122,24 @@ def get_hypervisor_info_json(conn):
         domain = conn.lookupByName(domain_name)
         hypervisor_info["domains"].append(get_vm_info(domain))
 
-    hypervisor_info_json = json.dumps(hypervisor_info, indent=4)
-
-    return hypervisor_info_json
+    return hypervisor_info
 
 
+def destroy_vm(domain):
+    if domain.isActive():
+        domain.destroy()
+    else:
+        print("domain is already innactive")
+
+
+def start_vm(domain):
+    if domain.isActive():
+        print("VM is already active")
+    else:
+        domain.create()
+
+
+# TEST
 remote_user = "root"
 remote_hosts = "172.16.136.156"
 
@@ -77,11 +148,6 @@ if not conn:
     raise SystemExit("Failed to open connection to qemu:///system")
 
 
-print(get_hypervisor_info_json(conn))
-
-# print_active_domains(conn)
-# print_all_domains(conn)
-# nodeinfo = conn.getInfo()
-
-
+start_vm(conn.lookupByName("eteint"))
+destroy_vm(conn.lookupByName("debian11"))
 conn.close()
