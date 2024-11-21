@@ -177,24 +177,3 @@ def startVm(domain):
         print("VM is already active")
     else:
         domain.create()
-
-
-# TEST
-remote_user = "root"
-remote_hosts = "172.16.136.156"
-
-conn = libvirt.open("qemu+ssh://" + remote_user + "@" + remote_hosts + "/system")
-if not conn:
-    raise SystemExit("Failed to open connection to qemu:///system")
-
-default_pool = conn.storagePoolLookupByName("default")
-
-createStoragePoolVolume(default_pool, "caca.qcow2", 10)
-
-createVm(
-    conn,
-    "caca_test",
-    conn.storagePoolLookupByName("default").storageVolLookupByName("caca.qcow2"),
-)
-
-conn.close()
