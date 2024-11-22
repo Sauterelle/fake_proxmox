@@ -1,3 +1,4 @@
+from sys import flags
 import libvirt
 
 """
@@ -17,12 +18,20 @@ TODO à faire
   cloners
   supprimer
   snapshot
-  cree une vm (template ??)
+  cree une vm (template ??): fait (pas d'interface graphique pour l'instant, à voir avec spice ou vnc)
   ---------Gestion disque---------
   creer un pool 
   Cree un volume qcow2 : fait (par défaut dans le pool "default")
   Supprimer volume qcow2 : fait
 """
+
+
+# connection utils
+def connect_hypervisor(uri="qemu:///system"):
+    try:
+        return libvirt.open(uri)
+    except libvirt.libvirtError as e:
+        raise RuntimeError(f"erreur de connection à libvirt : {e}")
 
 
 # Storage utils
@@ -57,7 +66,7 @@ def createStoragePoolVolume(pool, volName, capacity=10):
         stpVol = pool.createXML(stpVolXML, 0)
         return stpVol
     else:
-        return "Volume already exist"
+        return 0
 
 
 def deleteStoragePoolVolume(volume):
@@ -125,7 +134,7 @@ def get_hypervisor_info_json(conn):
     return hypervisor_info
 
 
-def createVm(conn, name, volume, vcpu=1, memory=1):
+def createVm(conn, name, volume, iso_path, vcpu=1, memory=1):
     xml_config = (
         """
         <domain type='qemu'>
@@ -149,9 +158,20 @@ def createVm(conn, name, volume, vcpu=1, memory=1):
         + """'/>
             <target dev='vda' bus='virtio'/>
             </disk>
+            <disk type='file' device='cdrom'>
+                <driver name='qemu' type='raw'/>
+                <source file='"""
+        + iso_path
+        + """'/>
+                <target dev='hda' bus='ide'/>
+                <readonly/>
+            </disk>
             <interface type='network'>
             <source network='default'/>
             </interface>
+            <graphics type="vnc" port="5900" listen="0.0.0.0" autoport="yes">
+                <listen type="address" address="0.0.0.0"/>
+            </graphics>
         </devices>
         </domain>
         """
@@ -177,3 +197,125 @@ def startVm(domain):
         print("VM is already active")
     else:
         domain.create()
+
+
+def suspend_vm(domain):
+    domain.suspend()
+    print(f"VM {domain.getHostname()} suspendue.")
+
+
+def shutdown_vm(domain):
+    if not domain.isActive():
+        domain.shutdown()
+    else:
+        print(f"Domain {domain.getHostname()} already shutdown.")
+
+
+def reboot_vm(domain):
+    domain.reboot(flags=0)
+    print(f"Domain {domain.getHostname()} rebooted.")
+
+
+def migrate_vm(vm_name, target_uri):
+    conn = connect_hypervisor()
+    try:
+        vm = conn.lookupByName(vm_name)
+        vm.migrate2(
+            dconn=libvirt.open(target_uri),
+            flags=libvirt.VIR_MIGRATE_LIVE | libvirt.VIR_MIGRATE_UNDEFINE_SOURCE,
+            dname=None,
+            uri=None,
+            bandwidth=0,
+        )
+        print(f"Migration de {vm_name} terminée.")
+    except libvirt.libvirtError as e:
+        raise RuntimeError(f"Erreur de migration : {e}")
+    finally:
+        conn.close()
+
+
+def delete_vm(vm_name):
+    conn = connect_hypervisor()
+    try:
+        vm = conn.lookupByName(vm_name)
+        if vm.isActive():
+            vm.destroy()
+        vm.undefine()
+        print(f"VM {vm_name} deleted.")
+    except libvirt.libvirtError as e:
+        raise RuntimeError(f"Error while deleting : {e}")
+    finally:
+        conn.close()
+
+
+def create_snapshot(vm_name, snapshot_name):
+    conn = connect_hypervisor()
+    try:
+        vm = conn.lookupByName(vm_name)
+        snapshot_xml = f"""
+        <domainsnapshot>
+            <name>{snapshot_name}</name>
+        </domainsnapshot>
+        """
+        vm.snapshotCreateXML(snapshot_xml, 0)
+        print(f"Snapshot {snapshot_name} créé pour {vm_name}.")
+    except libvirt.libvirtError as e:
+        raise RuntimeError(f"Erreur lors de la création du snapshot : {e}")
+    finally:
+        conn.close()
+
+
+def restore_snapshot(vm_name, snapshot_name):
+    conn = connect_hypervisor()
+    try:
+        vm = conn.lookupByName(vm_name)
+        snapshot = vm.snapshotLookupByName(snapshot_name, 0)
+        vm.revertToSnapshot(snapshot)
+        print(f"Snapshot {snapshot_name} restauré pour {vm_name}.")
+    except libvirt.libvirtError as e:
+        raise RuntimeError(f"Erreur lors de la restauration : {e}")
+    finally:
+        conn.close()
+
+
+def clone_vm(source_vm_name, clone_vm_name):
+    conn = connect_hypervisor()
+    try:
+        source_vm = conn.lookupByName(source_vm_name)
+        xml_desc = source_vm.XMLDesc(0)
+        clone_xml = xml_desc.replace(source_vm_name, clone_vm_name)
+
+        clone_vm = conn.defineXML(clone_xml)
+        clone_vm.create()
+
+        print(f"{clone_vm_name} has been successfully cloned and created.")
+    except libvirt.libvirtError as e:
+        raise RuntimeError(f"Erreur lors du clonage : {e}")
+    finally:
+        conn.close()
+
+
+# TEST
+
+remote_user = "root"
+remote_hosts = "172.16.136.156"
+conn = libvirt.open("qemu+ssh://" + remote_user + "@" + remote_hosts + "/system")
+# create storage pools
+pool = conn.storagePoolLookupByName("default")
+vol_name = "caca2.qcow2"
+
+print(isVolumeExist(pool, vol_name))
+if isVolumeExist(pool, vol_name):
+    print("ici")
+    createVm(
+        conn,
+        "mavm",
+        pool.storageVolLookupByName(vol_name),
+        "/mnt/nfs/ISO/debian-12.7.0-amd64-netinst.iso",
+    )
+else:
+    print("la")
+    volume = createStoragePoolVolume(pool, vol_name)
+    if volume:
+        print("dans le volume")
+        createVm(conn, "mavm", volume, "/mnt/nfs/ISO/debian-12.7.0-amd64-netinst.iso")
