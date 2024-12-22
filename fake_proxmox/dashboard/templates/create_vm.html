@@ -1,0 +1,15 @@
+{% extends 'base_generic.html' %}
+
+{% block content %}
+  <h1>Créer une nouvelle VM</h1>
+
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-success">Créer la VM</button>
+  </form>
+  <br>
+  <a href="{% url 'vm_list' hypervisor.id %}" class="btn btn-primary">Retour à la liste des VMs</a>
+
+
+{% endblock %}

@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VM Details</title>
+</head>
+<body>
+    <h1>VM Details for {{ vm_info.name }}</h1>
+    <p>UUID: {{ vm_info.uuid }}</p>
+    <p>State: {{ vm_info.state }}</p>
+    <p>Memory: {{ vm_info.memory_used_kb }} KB</p>
+    <p>vCPUs: {{ vm_info.vcpu_count }}</p>
+    <p>CPU Time: {{ vm_info.cpu_time_ns }} ns</p>
+    <a href="{% url 'hypervisor_detail' hypervisor.id %}">Back to Hypervisor</a>
+</body>
+</html>

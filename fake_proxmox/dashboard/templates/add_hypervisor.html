@@ -1,0 +1,13 @@
+{% extends 'base_generic.html' %}
+
+{% block content %}
+  <h1>Ajouter un Hyperviseur</h1>
+
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-success">Ajouter</button>
+  </form>
+  <br>
+  <a href="{% url 'hypervisor_list' %}" class="btn btn-primary">Retour à la liste des hyperviseurs</a>
+{% endblock %}

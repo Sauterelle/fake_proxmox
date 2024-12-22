@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VMs on {{ hypervisor.ip_address }}</title>
+</head>
+<body>
+    <h1>VMs on Hypervisor {{ hypervisor.ip_address }}</h1>
+    <ul>
+        {% for vm in hypervisor_info.domains %}
+            <li>
+                {{ vm.name }} - State: {{ vm.state }}
+                <a href="{% url 'vm_detail' hypervisor.id vm.uuid %}">View Details</a>
+                <a href="{% url 'delete_vm' hypervisor.id vm.uuid %}">Delete</a>
+            </li>
+        {% endfor %}
+    </ul>
+    <form action="{% url 'add_vm' hypervisor.id %}" method="POST">
+        {% csrf_token %}
+        <input type="text" name="name" placeholder="VM Name" required>
+        <input type="text" name="volume" placeholder="Volume" required>
+        <input type="number" name="vcpu" placeholder="vCPU" required>
+        <input type="number" name="memory" placeholder="Memory (GB)" required>
+        <button type="submit">Add VM</button>
+    </form>
+</body>
+</html>
