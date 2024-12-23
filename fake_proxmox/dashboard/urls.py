@@ -3,4 +3,5 @@ from . import views
 
 urlpatterns = [
     path("", views.index, name="index"),  # TEST
+    path("console/str:vm_id>/", views.vm_console, name="vm_console"),
 ]

@@ -1,4 +1,5 @@
 from sys import flags
+import xml.etree.ElementTree as ET
 import libvirt
 
 """
@@ -7,6 +8,7 @@ TODO à faire
 - Ajouter une connexion QUEMU/KVM
 
   ---------Network---------
+import xml.etree.ElementTree as ET
     Crée un nouveau réseau  
 
   ---------VM---------
@@ -295,27 +297,36 @@ def clone_vm(source_vm_name, clone_vm_name):
         conn.close()
 
 
+def get_vnc_port(vm_name):
+    conn = connect_hypervisor()
+    domain = conn.lookupByName(vm_name)
+    xml_desc = domain.XMLDesc()
+    root = ET.fromstring(xml_desc)
+    vnc = root.find(".//graphics[@type='vnc']")
+    return int(vnc.get("port"))
+
+
 # TEST
 
-remote_user = "root"
-remote_hosts = "172.16.136.156"
-conn = libvirt.open("qemu+ssh://" + remote_user + "@" + remote_hosts + "/system")
-# create storage pools
-pool = conn.storagePoolLookupByName("default")
-vol_name = "caca2.qcow2"
-
-print(isVolumeExist(pool, vol_name))
-if isVolumeExist(pool, vol_name):
-    print("ici")
-    createVm(
-        conn,
-        "mavm",
-        pool.storageVolLookupByName(vol_name),
-        "/mnt/nfs/ISO/debian-12.7.0-amd64-netinst.iso",
-    )
-else:
-    print("la")
-    volume = createStoragePoolVolume(pool, vol_name)
-    if volume:
-        print("dans le volume")
-        createVm(conn, "mavm", volume, "/mnt/nfs/ISO/debian-12.7.0-amd64-netinst.iso")
+# remote_user = "root"
+# remote_hosts = "172.16.136.156"
+# conn = libvirt.open("qemu+ssh://" + remote_user + "@" + remote_hosts + "/system")
+# # create storage pools
+# pool = conn.storagePoolLookupByName("default")
+# vol_name = "caca2.qcow2"
+#
+# print(isVolumeExist(pool, vol_name))
+# if isVolumeExist(pool, vol_name):
+#     print("ici")
+#     createVm(
+#         conn,
+#         "mavm",
+#         pool.storageVolLookupByName(vol_name),
+#         "/mnt/nfs/ISO/debian-12.7.0-amd64-netinst.iso",
+#     )
+# else:
+#     print("la")
+#     volume = createStoragePoolVolume(pool, vol_name)
+#     if volume:
+#         print("dans le volume")
+#         createVm(conn, "mavm", volume, "/mnt/nfs/ISO/debian-12.7.0-amd64-netinst.iso")
