@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!DOCTYPE html>
 <html>
 <head>
@@ -11,4 +12,95 @@
     <p>Domain : {{ info.domains }}</p>
 </body>
 </html>
+=======
+{% load static %}
+>>>>>>> 34e0970dbc5ce84c44582ac2edb01ce62deb3745
 
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>FakeMox</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}" />
+  </head>
+  <body>
+    <header>
+      <div id="left">
+        <img src="{% static 'assets/logo.png' %}" alt="FakeMox Logo" />
+        <span id="white">Fa</span><span id="orange">k</span>
+        <span id="white">eMo</span><span id="orange">x</span>
+        <span id="ve"> Virtual Environment 1.0-0</span>
+        <input type="text" placeholder="Search..." />
+      </div>
+      <div id="right">
+        <button id="button1">Add Hypervisor</button>
+        <button id="button2">Create VM</button>
+      </div>
+    </header>
+
+    <div class="main">
+      <!-- ... partie du code HTML inchangée ... -->
+      <aside>
+        <nav>
+          <ul>
+            <li class="dropdown-toggle">
+              <div
+                class="toggle-button"
+                style="display: flex; align-items: center"
+              >
+                <span>Database</span>
+                <img
+                  class="image-database"
+                  src="{% static 'assets/arrow.png' %}"
+                  alt="Image à côté de Database"
+                />
+              </div>
+            </li>
+
+            <ul class="dropdown"></ul>
+          </ul>
+        </nav>
+      </aside>
+      <main>
+        <div id="list_vm"></div>
+        <div id="option_vm"></div>
+        <div id="frame">
+          <div id="add_hypervisor">
+            <!-- Formulaire caché initialement -->
+            <form id="hypervisorForm">
+              <label for="hypervisorPath">Chemin de l'hyperviseur :</label>
+              <input type="text" id="hypervisorPath" name="hypervisorPath" placeholder="Entrez le chemin de l'hyperviseur" required>
+              <button type="submit">Valider</button>
+            </form>
+          </div>
+          <div id="create-vm-form">
+            <h3>Create Virtual Machine</h3>
+            <form id="vmForm">
+              <label for="vm-name">VM Name:</label>
+              <input type="text" id="vm-name" required>
+              <label for="hypervisor-select">Choose Hypervisor:</label>
+              <select id="hypervisor-select">
+                <!-- Liste des hyperviseurs sera remplie par le JS -->
+              </select>
+              <br>
+        
+              <label for="max-memory">Max Memory (MB):</label>
+              <input type="number" id="max-memory" min="1" required>
+              <br>
+        
+              <label for="vcpu-count">vCPU Count:</label>
+              <input type="number" id="vcpu-count" min="1" required>
+              <br>
+        
+              <button type="submit">Create VM</button>
+            </form>
+          </div>
+        </div>
+      </main>
+    </div>
+    <script>
+      const jsonUrl = "{% static 'data/json.json' %}";
+    </script>
+    <script src="{% static 'js/scripts.js' %}"></script>
+  </body>
+</html>

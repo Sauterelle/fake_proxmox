@@ -1,0 +1,98 @@
+[
+  {
+    "uri": "qemu+ssh://root@172.16.136.156/system",
+    "hostname": "server1",
+    "cpu_model": "x86_64",
+    "memory_size_mb": 1932,
+    "cpu_count": 1,
+    "cpu_frequency_mhz": 3293,
+    "numa_nodes": 1,
+    "cpu_sockets_per_node": 1,
+    "cores_per_socket": 1,
+    "threads_per_core": 1,
+    "domains": [
+      {
+        "name": "debian11",
+        "uuid": "308a6c47-6003-4e55-92bd-2a4b8541cb4b",
+        "state": 5,
+        "max_memory_kb": 1048576,
+        "memory_used_kb": 1048576,
+        "vcpu_count": 1,
+        "cpu_time_ns": 0
+      },
+      {
+        "name": "eteint",
+        "uuid": "f43fa235-dcca-4c70-bb88-99d15f43b982",
+        "state": 5,
+        "max_memory_kb": 1048576,
+        "memory_used_kb": 1048576,
+        "vcpu_count": 1,
+        "cpu_time_ns": 0
+      }
+    ]
+  },
+  {
+    "uri": "qemu+ssh://root@172.16.136.157/system",
+    "hostname": "server2",
+    "cpu_model": "x86_64",
+    "memory_size_mb": 4096,
+    "cpu_count": 2,
+    "cpu_frequency_mhz": 2400,
+    "numa_nodes": 1,
+    "cpu_sockets_per_node": 1,
+    "cores_per_socket": 2,
+    "threads_per_core": 1,
+    "domains": [
+      {
+        "name": "ubuntu20",
+        "uuid": "123e4567-e89b-12d3-a456-426614174000",
+        "state": 1,
+        "max_memory_kb": 2097152,
+        "memory_used_kb": 1048576,
+        "vcpu_count": 2,
+        "cpu_time_ns": 123456789
+      },
+      {
+        "name": "windows10",
+        "uuid": "98bfa259-47c1-4e68-9441-bd4c121244fa",
+        "state": 3,
+        "max_memory_kb": 4194304,
+        "memory_used_kb": 3145728,
+        "vcpu_count": 4,
+        "cpu_time_ns": 987654321
+      }
+    ]
+  },
+  {
+    "uri": "qemu+ssh://root@172.16.136.158/system",
+    "hostname": "server3",
+    "cpu_model": "x86_64",
+    "memory_size_mb": 8192,
+    "cpu_count": 4,
+    "cpu_frequency_mhz": 2800,
+    "numa_nodes": 2,
+    "cpu_sockets_per_node": 2,
+    "cores_per_socket": 1,
+    "threads_per_core": 2,
+    "domains": [
+      {
+        "name": "centos8",
+        "uuid": "c0a80101-29ab-4a7f-bd23-9876c0ffee02",
+        "state": 1,
+        "max_memory_kb": 3145728,
+        "memory_used_kb": 2097152,
+        "vcpu_count": 4,
+        "cpu_time_ns": 567890123
+      },
+      {
+        "name": "test-machine",
+        "uuid": "e5432d98-1111-2222-3333-444455556666",
+        "state": 5,
+        "max_memory_kb": 1048576,
+        "memory_used_kb": 0,
+        "vcpu_count": 1,
+        "cpu_time_ns": 0
+      }
+    ]
+  }
+]
