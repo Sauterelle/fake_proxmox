@@ -2,7 +2,7 @@
 <h3>Create Virtual Machine</h3>
 <form id="vmForm" action={% url 'new-vm' %} method="post">
   {% csrf_token %}
-  {{ vm_form }}
+  {{ vm_form.as_p }}
   <button type="form-submit">Create VM</button>
 </form>
 {% endblock %}
