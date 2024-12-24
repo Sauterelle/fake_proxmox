@@ -1,4 +1,4 @@
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import HttpResponseRedirect, get_object_or_404, render
 from .utils.kvm_python import get_hypervisor_info_json, createVm
 from .models import VirtualMachine
 from . import forms
@@ -25,8 +25,13 @@ def vm_console(request, vm_id):
 
 
 def create_vm(request):
-    vm_form = forms.CreateVM()
-    return render(request, "post/vm_new.html", {"vm_form": vm_form})
+    if request.method == "POST":
+        form = forms.CreateVM(request.POST)
+        if form.is_valid():
+            return HttpResponseRedirect("/thanks")
+    else:
+        form = forms.CreateVM()
+    return render(request, "vm_new.html", {"vm_form": form})
 
     # if request.method == "POST":
     #     vm_name = request.POST.get("vm_name")
