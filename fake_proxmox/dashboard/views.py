@@ -1,7 +1,7 @@
 from django.shortcuts import get_object_or_404, render
-from django.http import HttpResponse
-from .utils.kvm_python import get_hypervisor_info_json
+from .utils.kvm_python import get_hypervisor_info_json, createVm
 from .models import VirtualMachine
+from . import forms
 import libvirt
 
 
@@ -22,3 +22,20 @@ def vm_console(request, vm_id):
     )
 
     return render(request, "vm_console.html", {"no_vnc_url": no_vnc_url, "vm": vm})
+
+
+def create_vm(request):
+    vm_form = forms.CreateVM()
+    return render(request, "post/vm_new.html", {"vm_form": vm_form})
+
+    # if request.method == "POST":
+    #     vm_name = request.POST.get("vm_name")
+    #     hypervisor = request.POST.get("hypervisor")
+    #     vm_memory = request.POST.get("vm_memory")
+    #     vm_cpu = request.POST.get("vm_cpu")
+    #     try:
+    #         createVm(hypervisor,vm_name,)
+    #
+    # else:
+    #     form = forms.CreateVM()
+    # return render(request, "post/vm_new.html", {"form": form})

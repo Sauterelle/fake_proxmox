@@ -136,55 +136,60 @@ def get_hypervisor_info_json(conn):
     return hypervisor_info
 
 
-def createVm(conn, name, volume, iso_path, vcpu=1, memory=1):
-    xml_config = (
-        """
-        <domain type='qemu'>
-        <name>"""
-        + name
-        + """</name>
-        <memory unit='G'>"""
-        + str(memory)
-        + """</memory> <!-- 1 Go de RAM -->
-        <vcpu placement='static'>"""
-        + str(vcpu)
-        + """</vcpu>    <!-- 1 vCPU -->
-        <os>
-            <type arch='x86_64' machine='pc-i440fx-7.2'>hvm</type>
-        </os>
-        <devices>
-            <disk type='file' device='disk'>
-            <driver name='qemu' type='qcow2'/>
-            <source file='"""
-        + volume.path()
-        + """'/>
-            <target dev='vda' bus='virtio'/>
-            </disk>
-            <disk type='file' device='cdrom'>
-                <driver name='qemu' type='raw'/>
+def createVm(uri, name, volume, iso_path, vcpu=1, memory=1):
+    conn = connect_hypervisor(uri)
+    try:
+        xml_config = (
+            """
+            <domain type='qemu'>
+            <name>"""
+            + name
+            + """</name>
+            <memory unit='G'>"""
+            + str(memory)
+            + """</memory> <!-- 1 Go de RAM -->
+            <vcpu placement='static'>"""
+            + str(vcpu)
+            + """</vcpu>    <!-- 1 vCPU -->
+            <os>
+                <type arch='x86_64' machine='pc-i440fx-7.2'>hvm</type>
+            </os>
+            <devices>
+                <disk type='file' device='disk'>
+                <driver name='qemu' type='qcow2'/>
                 <source file='"""
-        + iso_path
-        + """'/>
-                <target dev='hda' bus='ide'/>
-                <readonly/>
-            </disk>
-            <interface type='network'>
-            <source network='default'/>
-            </interface>
-            <graphics type="vnc" port="5900" listen="0.0.0.0" autoport="yes">
-                <listen type="address" address="0.0.0.0"/>
-            </graphics>
-        </devices>
-        </domain>
-        """
-    )
+            + volume.path()
+            + """'/>
+                <target dev='vda' bus='virtio'/>
+                </disk>
+                <disk type='file' device='cdrom'>
+                    <driver name='qemu' type='raw'/>
+                    <source file='"""
+            + iso_path
+            + """'/>
+                    <target dev='hda' bus='ide'/>
+                    <readonly/>
+                </disk>
+                <interface type='network'>
+                <source network='default'/>
+                </interface>
+                <graphics type="vnc" port="5900" listen="0.0.0.0" autoport="yes">
+                    <listen type="address" address="0.0.0.0"/>
+                </graphics>
+            </devices>
+            </domain>
+            """
+        )
+        dom = conn.createXML(xml_config)
 
-    dom = conn.createXML(xml_config)
-
-    if dom is None:
-        print("Failed to create a domain fom an XML definition.")
-        exit(1)
-    print("Guest " + dom.name() + " has booted")
+        if dom is None:
+            print("Failed to create a domain fom an XML definition.")
+            exit(1)
+        print("Guest " + dom.name() + " has booted")
+    except libvirt.libvirtError as e:
+        raise RuntimeError(f"Erreur à la creation de la vm : {e}")
+    finally:
+        conn.close()
 
 
 def destroyVm(domain):
@@ -297,13 +302,13 @@ def clone_vm(source_vm_name, clone_vm_name):
         conn.close()
 
 
-def get_vnc_port(vm_name):
-    conn = connect_hypervisor()
-    domain = conn.lookupByName(vm_name)
-    xml_desc = domain.XMLDesc()
-    root = ET.fromstring(xml_desc)
-    vnc = root.find(".//graphics[@type='vnc']")
-    return int(vnc.get("port"))
+# def get_vnc_port(vm_name):
+#     conn = connect_hypervisor()
+#     domain = conn.lookupByName(vm_name)
+#     xml_desc = domain.XMLDesc()
+#     root = ET.fromstring(xml_desc)
+#     vnc = root.find(".//graphics[@type='vnc']")
+#     return int(vnc.get("port"))
 
 
 # TEST
